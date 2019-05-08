@@ -467,7 +467,7 @@ void i2c_clear_dma_last_transfer(uint32_t i2c)
 static void i2c_write7_v1(uint32_t i2c, int addr, uint8_t *data, size_t n)
 {
 	while ((I2C_SR2(i2c) & I2C_SR2_BUSY)) {
-	}
+    }
 
 	i2c_send_start(i2c);
 
@@ -478,7 +478,11 @@ static void i2c_write7_v1(uint32_t i2c, int addr, uint8_t *data, size_t n)
 	i2c_send_7bit_address(i2c, addr, I2C_WRITE);
 
 	/* Waiting for address is transferred. */
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
+	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR)) {
+        if (I2C_SR1(i2c) & I2C_SR1_AF) { // ACK failed, exit
+            return;
+        }
+    }
 
 	/* Clearing ADDR condition sequence. */
 	(void)I2C_SR2(i2c);
@@ -501,7 +505,11 @@ static void i2c_read7_v1(uint32_t i2c, int addr, uint8_t *res, size_t n)
 	i2c_send_7bit_address(i2c, addr, I2C_READ);
 
 	/* Waiting for address is transferred. */
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
+	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR)) {
+        if (I2C_SR1(i2c) & I2C_SR1_AF) { // ACK failed, exit
+            return;
+        }
+    }
 	/* Clearing ADDR condition sequence. */
 	(void)I2C_SR2(i2c);
 
